@@ -42,7 +42,7 @@ public class Methods {
     public  void readDelimitado(String path) throws FileNotFoundException, IOException, SQLException{
         BufferedReader read = new BufferedReader(new FileReader(path));
         String result="";
-        
+        int nPropiedades =0;
         while((result = read.readLine())!=null){
           
            String[] parts = result.split("_");
@@ -50,50 +50,54 @@ public class Methods {
             System.out.print(parts[1]+ "    ");
             System.out.print(parts[2]+ "    \n");
             
-                    getNPropiedades(parts[0],Integer.parseInt(parts[2]));
+                   nPropiedades = getNPropiedades(parts[0],Integer.parseInt(parts[2]));
         }
-        
+        System.out.println("El nuemro de propiedades es: "+ nPropiedades);
                 
     }
     
     
-    public void getNPropiedades(String codZ, int precioPiso) throws SQLException{
+    public int getNPropiedades(String codZ, int precioPiso) throws SQLException{
         String selectQuery = "SELECT * FROM propiedades WHERE codz =?";
         PreparedStatement statement = Conexion().prepareStatement(selectQuery);
         statement.setString(1, codZ);
         ResultSet result = statement.executeQuery();
-        
+        int nPropiedades =0;
         while (result.next()) {
             String codP = result.getString("codp");
             System.out.print("   "+codP + "\n");
-            
+            nPropiedades ++;
             getInfPiso(codP,precioPiso);
             
         }
+        return nPropiedades;
         
     }
     
     
-    public void getInfPiso(String codP, int precioM2) throws SQLException{
+    public void  getInfPiso(String codP, int precioM2) throws SQLException{
         String selectQuery = "SELECT * FROM pisos WHERE codp = ?";
         PreparedStatement statement = Conexion().prepareStatement(selectQuery);
         statement.setString(1, codP);
         ResultSet result = statement.executeQuery();
-        
+        int m2 =0;
+        int precio =0;
         while(result.next()){
-            int m2 = result.getInt("m2");
+            m2 = result.getInt("m2");
             int anhoConstruccion = result.getInt("ano");
             System.out.print("Los M^2 de este piso son: " + m2 + " \n");
             
            Date hoy = new Date();
             
-            getPrecioPropiedad(m2, precioM2,hoy,anhoConstruccion);
+            precio =getPrecioPropiedad(m2, precioM2,hoy,anhoConstruccion);
+            
             
         }
+       
     }
     
     
-  public void getPrecioPropiedad(int nM2, int precioM2, Date hoy, int anhoConstruccion) {
+  public int getPrecioPropiedad(int nM2, int precioM2, Date hoy, int anhoConstruccion) {
         int anhoActual = hoy.getYear() + 1900; // Obtener el año actual sumando 1900
         int antiguedad = anhoActual - anhoConstruccion;
 
@@ -111,6 +115,8 @@ public class Methods {
         int precioFinal = precioTotal - descuento;
 
         System.out.println("El precio total es: " + precioFinal);
+        
+        return precioFinal;
     }
 
     
