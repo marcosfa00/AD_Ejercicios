@@ -32,28 +32,46 @@ public class Methods {
         
     }
     
-    public void readSerial(String path) throws FileNotFoundException, IOException, ClassNotFoundException{
+    public void readSerial(String path) throws FileNotFoundException, IOException, ClassNotFoundException, SQLException{
         ObjectInputStream reader = new ObjectInputStream(new FileInputStream(path));
         Detectados x ;
         while((x =(Detectados) reader.readObject()) != null ){
             System.out.println("numero: "+x.numero+" codarea: "+x.codarea+" codfungo: "+x.codfungo+" superficieAfectada: "+x.superficie);
-          
+           readArea(x.codarea);
         }
         
         
     }
     
-    public void readFungos(int codFungo) throws SQLException{
-        String selectQuery = "SELECT * FROM fungos WHERE id = ?";
+    public void readArea(int codArea) throws SQLException{
+        String selectQuery = "SELECT * FROM areas WHERE coda = ?";
         PreparedStatement statement = Conexion().prepareStatement(selectQuery);
-        statement.setInt(1,codFungo);
+        statement.setInt(1,codArea);
         ResultSet result = statement.executeQuery();
+        float superficie=0;
+        float numeroFungos =0;
+        float humedia=0;
+        String nameArea ="";
         while(result.next()){
+           superficie = result.getFloat("superficie");
+           humedia = result.getFloat("hummedia");
+           numeroFungos = result.getFloat("numerofungos");
+           nameArea = result.getString("noma");
+           
+            System.out.println(superficie + "  "+humedia+"  "+numeroFungos+"  "+nameArea);
             
+            
+            
+          
         }
         
         
+        
     }
+    
+}
+    
+    
 
     
     
@@ -78,4 +96,4 @@ public class Methods {
     
     
     
-}
+

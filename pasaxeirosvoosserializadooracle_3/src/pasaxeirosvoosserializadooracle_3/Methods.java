@@ -33,10 +33,14 @@ public class Methods {
         return conn;
         
     }
+   
     
-    
+
     public void insertReserva(String path) throws IOException, FileNotFoundException, ClassNotFoundException, SQLException{
         ArrayList<Reserva> lista = new ArrayList<>();
+        
+    
+        
         lista = leerSerializado(path);
     
         String insertQuery = "INSERT INTO reservasfeitas (codr, dni, nome, prezoreserva) VALUES (?, ?, ?, ?)";

@@ -40,7 +40,7 @@ public class Conection {
         ResultSet result = statement.executeQuery();
        int num1 = 0;
        int num2 = 0;
-       int sumaTotal =0;
+       
       
        while(result.next()){
               num2 = getReferenciaC2(result.getString("c2"));

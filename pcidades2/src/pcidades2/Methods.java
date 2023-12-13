@@ -44,7 +44,8 @@ public class Methods {
         String result="";
         int nPropiedades =0;
         while((result = read.readLine())!=null){
-          
+          //z1_calvario_2300
+          //z2_rosalia_1800
            String[] parts = result.split("_");
             System.out.print(parts[0] + "    ");
             System.out.print(parts[1]+ "    ");
