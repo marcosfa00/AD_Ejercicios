@@ -2,98 +2,120 @@
 
 package pfungos;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.PrintWriter;
 import java.sql.*;
-
+import java.util.ArrayList;
 
 public class Methods {
-    /**
-     * Declaramos los atributos
-     */
-    private String driver ="jdbc:postgresql:";
-    private String host = "//localhost:";
-    private String puerto = "5434";//Recordar que pro defecto en clase será el 5432
-    private String sid = "postgres";
-    private String usuario="postgres";
-    private String password = "postgres";
-    private String url = driver + host + puerto + "/" + sid;
-    
-    
-    /**
-     * Este Metodo devuelve la conexión con la base de datos
-     * @return Objecto de Tipo Connection
-     */
-    public  Connection Conexion() throws SQLException{
-        Connection conn = DriverManager.getConnection(url,usuario,password);
-        return conn;
+      public Connection conexion() throws SQLException{
+        String driver = "jdbc:postgresql:";
+        String host = "//localhost:";
+        String porto = "5434";
+        String sid = "postgres";
+        String usuario = "postgres";
+        String password = "postgres";
+        String url = driver + host+ porto + "/" + sid;
         
+        Connection con = DriverManager.getConnection(url,usuario,password);
+        
+        return con;
     }
     
-    public void readSerial(String path) throws FileNotFoundException, IOException, ClassNotFoundException, SQLException{
-        ObjectInputStream reader = new ObjectInputStream(new FileInputStream(path));
-        Detectados x ;
-        while((x =(Detectados) reader.readObject()) != null ){
-            System.out.println("numero: "+x.numero+" codarea: "+x.codarea+" codfungo: "+x.codfungo+" superficieAfectada: "+x.superficie);
-           readArea(x.codarea);
+    public void leerDetectadosSerializado(Connection con, String rutaSerializado, String rutaDelimitado) throws FileNotFoundException, FileNotFoundException, IOException, IOException, ClassNotFoundException, SQLException{
+        Detectados obx = null;
+        ObjectInputStream lec = new ObjectInputStream(new FileInputStream(rutaSerializado));
+        // objeto escribir serializado
+        PrintWriter esc = new PrintWriter(new BufferedWriter(new FileWriter(rutaDelimitado)));
+        
+        double superficie, humLimite, hummedia, porcentaxeDanos;
+        int coda;
+        String select, nomArea, nomFungo;
+        do{
+            obx = (Detectados) lec.readObject();
+            if(obx != null){
+                aumentarFungoArea(con, obx.getCodarea());
+                
+                // fungo area
+                    select = "select noma,hummedia,superficie,numerofungos from areas where coda = ?";
+                    PreparedStatement ps = con.prepareStatement(select);
+
+                    ps.setInt(1, obx.getCodarea());
+
+                    ResultSet rs = ps.executeQuery();
+
+                    rs.next();
+                    
+                    superficie = rs.getFloat("superficie");
+                    hummedia = rs.getFloat("hummedia");
+                    nomArea = rs.getString("noma");
+                    
+                    System.out.println("Nombre area: " + nomArea 
+                            + ", Hummedia: "+ hummedia 
+                            + ", Superficie: " + superficie
+                            + ", Numerofungos: " + rs.getFloat("numerofungos")
+                            + "\n"
+                    );
+
+                    ps.close();
+                    
+                // propiedades fungo
+                    select = "select id,nomf,humlimite from fungos where id=?";
+                    ps = con.prepareStatement(select);
+
+                    ps.setInt(1, obx.getCodfungo());
+
+                    rs = ps.executeQuery();
+
+                    rs.next();
+                    
+                    humLimite = rs.getFloat("humlimite");
+                    nomFungo = rs.getString("nomf");
+                    
+                    System.out.println("Id fungo: " + rs.getInt("id")
+                            + ", Nombre fungo: " + nomFungo
+                            + ", Humedad limite: " + humLimite
+                            + "\n"
+                    );
+
+
+                    ps.close();
+                // escribir delimitado
+                    if(hummedia > humLimite){
+                        porcentaxeDanos = obx.getSuperficie()*100/superficie;
+                        System.out.println("Porcentaxe danos: " + porcentaxeDanos);
+                        esc.println(obx.getCodarea() + "_" + nomArea + "_" + nomFungo + "_" + obx.getSuperficie() + "_" + porcentaxeDanos);
+                    }
+                    
+            } else{
+                System.out.println("Objeto nulo");
+            }
+        }while(obx != null);
+        esc.close();
+        lec.close();   
+    }
+    
+    
+    public void aumentarFungoArea(Connection con, int codarea) throws SQLException{
+        String update = "update areas SET numerofungos=numerofungos+1 where coda = ?";
+        PreparedStatement ps = con.prepareStatement(update);
+        
+        ps.setInt(1, codarea);
+        
+        int verificacion = ps.executeUpdate();
+        if(verificacion == 0){
+            System.out.println("Error: Produto no encontrado o modificacion no permitida");
+        } else{
+            System.out.println("Aumentado en 1 en el area: " + codarea);
         }
         
-        
+        ps.close();
     }
-    
-    public void readArea(int codArea) throws SQLException{
-        String selectQuery = "SELECT * FROM areas WHERE coda = ?";
-        PreparedStatement statement = Conexion().prepareStatement(selectQuery);
-        statement.setInt(1,codArea);
-        ResultSet result = statement.executeQuery();
-        float superficie=0;
-        float numeroFungos =0;
-        float humedia=0;
-        String nameArea ="";
-        while(result.next()){
-           superficie = result.getFloat("superficie");
-           humedia = result.getFloat("hummedia");
-           numeroFungos = result.getFloat("numerofungos");
-           nameArea = result.getString("noma");
-           
-            System.out.println(superficie + "  "+humedia+"  "+numeroFungos+"  "+nameArea);
-            
-            
-            
-          
-        }
-        
-        
-        
-    }
-    
 }
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
